@@ -35,7 +35,7 @@
   "permissions": ["tabs", "identity","identity.email", "storage","alarms"],
   "optional_permissions": [],
   "oauth2": {
-    "client_id": "",
+    "client_id": "343377692063-9vgjcbkj13gn7cflrg5p65ovv9evfq8p.apps.googleusercontent.com",
     "scopes": ["profile email", "https://www.googleapis.com/auth/drive"]
   }
 }

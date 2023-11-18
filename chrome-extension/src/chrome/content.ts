@@ -20,3 +20,5 @@ chrome.runtime.onMessage.addListener(messagesFromReactAppListener);
 const sendToBackground = (message: any, callback?: MessageResponse) => {
   chrome.runtime.sendMessage(message, callback);
 };
+
+export {}
