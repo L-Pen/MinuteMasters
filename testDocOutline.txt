@@ -1,0 +1,52 @@
+TA Meeting: November 16th
+Attendees
+Rayan Isran, Mathieu Geoffroy, David Breton, Theo Ghanem, Sehr Moosabhoy, Ryan Reszetnik, Sabrina Mansour
+Desired outcomes:
+* Verify deliverable content with Rayan
+* Update Ryan on our progress
+* Flag any problems with our design
+Agenda
+1. Show updated plans and task list.
+2. Verify that the content of our data input testing document is correct.
+3. Verify that the content of our design document is correct.
+4. Give a short demo of our progress so far.
+5. Flag potential problems:
+   1. Can ease of use be defined?
+   2. How to address shortage of pieces.
+Notes
+1. Show updated plans and task list.
+   1. Gantt chart is okay if we submit as a pdf
+   2. Our time breakdown is good for now - won’t be exact
+2. Verify that the content of our data input testing document is correct.
+   1. Looking good, expected and real are good indicators
+   2. Most important thing is readability
+3. Verify that the content of our design document is correct.
+   1. Looking good
+   2. Don’t need to be more detailed in out description
+   3. Subsystems at a high level is good
+   4. Integration is quite important
+   5. Aerial view of diagram and drawn are good as long as they are annotated
+4. Give a short demo of our progress so far.
+   1. Stalled out motor
+   2. Could plot the actual positions sent to the motor and make sure info sent to motor is correct
+   3. Bad cable
+   4. Could draw less power by setting dps limits
+   5. Could set a fixed speed that is slow enough to not draw enough power but will still only take within 3 min
+   6. Cable manage near the end 
+5. Flag potential problems:
+   1. Can ease of use be defined?
+      1. Was answered by Katrina’s post
+   2. How to address shortage of pieces.
+      1. Also addressed by our optimization
+   3. For design presentation
+      1. Mention what we have tested
+      2. What are the issues
+      3. Coherent story
+         * Go linearly
+      4. Can send him the presentation to review
+
+
+
+
+Action Items
+None.

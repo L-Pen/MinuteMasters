@@ -13,3 +13,30 @@ export const getGoogleDoc = async (
   const data = await response.json();
   return data;
 };
+
+export const updateGoogleDoc = async (
+  documentId: string,
+  token: string,
+  content: any
+): Promise<any> => {
+  const response = await fetch(
+    `https://docs.googleapis.com/v1/documents/${documentId}:batchUpdate`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(content),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to update document: ${response.status}`);
+  }
+
+  // const data = await response.json();
+  const data = await response.json();
+  return data;
+};
+
+
