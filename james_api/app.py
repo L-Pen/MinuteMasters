@@ -1,8 +1,8 @@
 from flask import Flask, request
 from flask_cors import CORS  # Import the CORS module
 from openai import OpenAI
-client = OpenAI()
 
+client = OpenAI()
 app = Flask(__name__)
 
 CORS(app, methods=["GET", "POST", "OPTIONS"])
@@ -22,19 +22,24 @@ def handle_get():
     if request.method == 'GET':
         data = request.get_json()
 
-        if data is not None:
-
+        if data is not None: 
+            
+            # Getting necessary information for openai api
             existing_notes = data["doc_content"] 
             new_dialogue = data["dialogue"]
 
             print('Existing notes before diologue addition:\n\n {}'.format(existing_notes))
             print('Phrase that is being entered at the correct spot: \n\n {}'.format(new_dialogue))
 
+            # Using the Openai API to sort new sentence into corerct category of notes
+
             updated_notes = adjustContent(existing_notes, new_dialogue)
 
-            print('Notes after diologue addition:\n\n {}'.format(updated_notes))
+            # Return modified notes modified with new information
 
+            print('Notes after diologue addition:\n\n {}'.format(updated_notes))
             return 'Received GET data: {}'.format(updated_notes)
+        
         else:
             print('No valid JSON data received in the GET request.')
             return 'No valid JSON data received in the GET request.'
@@ -75,3 +80,5 @@ def adjustContent(content, dialogue):
 
 if __name__ == '__main__':
     app.run()
+
+
