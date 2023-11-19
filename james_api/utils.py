@@ -1,5 +1,6 @@
 # This code is for v1 of the openai package: pypi.org/project/openai
 from openai import OpenAI
+import difflib
 client = OpenAI(
   api_key= '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',
 )
@@ -12,16 +13,10 @@ def adjustContent(content, dialogue):
     model = "gpt-4",
     messages = [
     {"role": "system", "content": f"""
-    You will be provided with meeting notes:
+    You will be provided with meeting notes and a piece of dialogue that was said during the meeting. Your role is to find the best place for it add it without changing the rest of the notes. These notes should be a summary of what is said into bullet points as if the person who said it wrote them themselves and not the verbatum words.
     """},
-    {"role": "user", "content": content},
-    {"role": "system", "content": '''
-     The following is a piece of dialogue that was said during the meeting find the best place for it add it.
-     If there is already a subsection dedicated to this topic, add it there.
-     You should return the full document with the new content added to it.
-     Make sure that the same numbering and format is used.
-     '''},
-    {"role": "user", "content": dialogue}
+    {"role": "user", "content": content + "\n=====================\nHere is the dialogue that was said:\n" + dialogue},
+
     ],
 
     temperature = 0,
@@ -32,9 +27,6 @@ def adjustContent(content, dialogue):
     
   return chat_interpretation
 
-adjustedContent = adjustContent(test_doc_content, currentMeetingDialogueInput)
-
-import difflib
 
 def show_changes(old_text, new_text):
   d = difflib.Differ()
@@ -58,15 +50,10 @@ def show_changes(old_text, new_text):
         print(line_count, line)
     line_count += 1
   
-  print(list(diff)[38])
-
   return line_position_array
 
 
-
-line_position_array = show_changes(test_doc_content, adjustedContent)
-print(line_position_array)
-
-
-
-
+def run_adjustContent(content, dialogue):
+  adjustedContent = adjustContent(content, dialogue)
+  line_position_array = show_changes(content, adjustedContent)
+  return line_position_array

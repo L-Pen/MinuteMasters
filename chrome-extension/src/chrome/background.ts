@@ -1,3 +1,5 @@
+import { updateGoogleDoc } from "../google.api";
+
 export type BackgroundMessage = {
   type: string;
   data: any;
@@ -11,6 +13,13 @@ chrome.runtime.onMessage.addListener(
         chrome.identity.getAuthToken({ interactive: true }, (token) => {
           sendResponse({ token });
         });
+        return true;
+      case "update_google_doc":
+        updateGoogleDoc(
+          request.data.documentId,
+          request.data.token,
+          request.data.content
+        );
         return true;
     }
   }

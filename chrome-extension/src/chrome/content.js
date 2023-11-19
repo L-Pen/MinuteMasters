@@ -59,9 +59,9 @@ const getDoccumentData = async () => {
       }
     });
   });
-  const documentID = window.location.href.split("/")[5];
+  const documentId = window.location.href.split("/")[5];
 
-  const res = await getGoogleDoc(documentID, token);
+  const res = await getGoogleDoc(documentId, token);
   console.log(res);
   const content = res.body.content
     .flatMap((section) =>
@@ -71,17 +71,55 @@ const getDoccumentData = async () => {
     )
     .join("");
 
-  return content;
+  return { content, documentId, token };
 };
 
 const processTranscript = async (transcript) => {
-  const documentData = await getDoccumentData();
-  console.log({
-    transcript,
-    documentData,
+  const { content, documentId, token } = await getDoccumentData();
+
+  const body = JSON.stringify({
+    dialogue: transcript,
+    content: content,
+  });
+  console.log(body);
+
+  const resp = await new Promise((resolve, reject) => {
+    fetch("http://127.0.0.1:5000/post", {
+      method: "POST",
+      body,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        resolve(res.json());
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+  var updateObject = {
+    requests: resp.map((upd) => ({
+      insertText: {
+        text: upd[2],
+        location: {
+          index: upd[1],
+        },
+      },
+    })),
+  };
+  console.log(resp, updateObject);
+  chrome.runtime.sendMessage({
+    type: "update_google_doc",
+    data: {
+      documentId,
+      token,
+      content,
+    },
   });
 };
 
+let timeout = null;
 const startRecording = () => {
   console.log("Started recording");
   recording = true;
@@ -94,7 +132,11 @@ const startRecording = () => {
       .map((result) => result[0])
       .map((result) => result.transcript)
       .join("");
-    processTranscript(transcript);
+    //only run process transcript every 10 seconds at the minimum
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      processTranscript(transcript);
+    }, 5000);
   };
   mic.onstop = () => {
     if (recording) mic.start();

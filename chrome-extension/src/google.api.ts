@@ -19,6 +19,11 @@ export const updateGoogleDoc = async (
   token: string,
   content: any
 ): Promise<any> => {
+  console.log("token", {
+    token,
+    content,
+    documentId,
+  });
   const response = await fetch(
     `https://docs.googleapis.com/v1/documents/${documentId}:batchUpdate`,
     {
@@ -29,6 +34,8 @@ export const updateGoogleDoc = async (
       body: JSON.stringify(content),
     }
   );
+
+  console.log("response", response);
 
   if (!response.ok) {
     throw new Error(`Failed to update document: ${response.status}`);

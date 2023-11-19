@@ -1,9 +1,10 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS  # Import the CORS module
 from openai import OpenAI
+from utils import run_adjustContent
 
 client = OpenAI(
-    api_key='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'
+  api_key= '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',
 )
 app = Flask(__name__)
 
@@ -50,35 +51,40 @@ def handle_get():
             return 'This endpoint only accepts GET requests.'
 
 
-    return "File has been received"
-
-
 # Function to sort new dialogue additions into the 
+@app.route('/post', methods=['POST'])
+def adjustContent():
+  
+    data = request.get_json()
+    content = data["content"]
+    dialogue = data["dialogue"]
 
-def adjustContent(content, dialogue):
-  response = client.chat.completions.create(
-    model = "gpt-4",
-    messages = [
-    {"role": "system", "content": f"""
-    You will be provided with meeting notes:
-    """},
-    {"role": "user", "content": content},
-    {"role": "system", "content": '''
-     The following is a piece of dialogue that was said during the meeting find the best place for it add it.
-     If there is already a subsection dedicated to this topic, add it there.
-     You should return the full document with the new content added to it in a note format.
-     Make sure that the same numbering and format is used.
-     '''},
-    {"role": "user", "content": dialogue}
-    ],
+    return jsonify(run_adjustContent(content, dialogue))
 
-    temperature = 0,
-    max_tokens = 1024
-  )
+    # response = client.chat.completions.create(
+    #     model = "gpt-4",
+    #     messages = [
+    #     {"role": "system", "content": f"""
+    #     You will be provided with meeting notes:
+    #     """},
+    #     {"role": "user", "content": content},
+    #     {"role": "system", "content": '''
+    #     The following is a piece of dialogue that was said during the meeting find the best place for it add it.
+    #     If there is already a subsection dedicated to this topic, add it there.
+    #     You should return the full document with the new content added to it in a note format.
+    #     Make sure that the same numbering and format is used.
+    #     '''},
+    #     {"role": "user", "content": dialogue}
+    #     ],
 
-  chat_interpretation = dict(dict(dict(response)['choices'][0])['message'])['content']
+    #     temperature = 0,
+    #     max_tokens = 1024
+    # )
+
+    # chat_interpretation = dict(dict(dict(response)['choices'][0])['message'])['content']
     
-  return chat_interpretation
+    # return jsonify({'outputText': chat_interpretation})
+
 
 if __name__ == '__main__':
     app.run()
