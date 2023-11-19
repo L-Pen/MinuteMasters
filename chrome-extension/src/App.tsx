@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import "./App.css";
+import AudioToText from "./AudioToText";
 
 export const App = () => {
   const [currentUrl, setCurrentUrl] = React.useState("");
@@ -14,6 +15,7 @@ export const App = () => {
   return (
     <>
       <div style={{ display: "flex", gap: "10px" }}>{currentUrl}</div>
+      <AudioToText />
     </>
   );
 };

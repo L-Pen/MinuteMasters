@@ -9,7 +9,7 @@ module.exports = {
               require.resolve("react-dev-utils/webpackHotDevClient"),
             paths.appIndexJs,
           ].filter(Boolean),
-          content: "./src/chrome/content.ts",
+          content: "./src/chrome/content.js",
           background: "./src/chrome/background.ts",
         },
         output: {

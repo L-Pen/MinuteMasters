@@ -1,0 +1,6 @@
+{
+  "env": {
+    "webextensions": true
+  },
+  "plugins": ["react", "react-hooks"]
+}

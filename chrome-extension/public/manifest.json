@@ -20,7 +20,7 @@
       "matches": [
         "*://*.google.com/*"
       ],
-      "js": ["./static/js/content.js"],
+      "js": ["./static/js/content.js","./src/worklets/recorderWorkletProcessor.js"],
       "all_frames": false,
       "run_at": "document_end"
     }
@@ -32,10 +32,10 @@
   "externally_connectable": {
     "matches": ["*://*.google.com/*"]
   },
-  "permissions": ["tabs", "identity","identity.email", "storage","alarms"],
-  "optional_permissions": [],
+  "permissions": ["tabs", "identity","identity.email", "storage","alarms","tabCapture"],
+  "optional_permissions": ["audioCapture"],
   "oauth2": {
-    "client_id": "",
+    "client_id": "91831042375-vt3fkrjfi3h828b0nrv813pu7ut6l15v.apps.googleusercontent.com",
     "scopes": ["profile email", "https://www.googleapis.com/auth/drive"]
   }
 }

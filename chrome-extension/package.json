@@ -5,8 +5,11 @@
   "dependencies": {
     "moment": "^2.29.4",
     "react": "^17.0.1",
+    "react-bootstrap": "^2.9.1",
     "react-dom": "^17.0.1",
-    "react-scripts": "4.0.1"
+    "react-hook-speech-to-text": "^0.8.0",
+    "react-scripts": "4.0.1",
+    "socket.io-client": "^4.7.2"
   },
   "scripts": {
     "start": "react-scripts start",

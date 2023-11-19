@@ -10,13 +10,14 @@ chrome.runtime.onMessage.addListener(
 );
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === "complete") {
-    if (tab.url?.includes("https://docs.google.com")) {
-      console.log("loaded google doc");
-      //   chrome.tabs.sendMessage(tabId, { type: "getReportCodes" }, (resp) => {
-      //     console.log("got response from content script", resp);
-      //     chrome.storage.local.set({ nexoniaReportCodes: resp });
-      //   });
-    }
+  if (
+    changeInfo.status === "complete" &&
+    tab.active &&
+    tab.url?.includes("docs.google.com")
+  ) {
+    console.log("tab changed", changeInfo);
+    chrome.tabs.sendMessage(tabId, { message: "page_loaded" }, (response) => {
+      console.log("got back", response);
+    });
   }
 });
