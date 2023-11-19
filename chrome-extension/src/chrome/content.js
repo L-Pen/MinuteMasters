@@ -4,6 +4,7 @@ let recording = false;
 
 const add_record_button = () => {
   document.getElementById("minute-master-record")?.remove();
+  document.getElementById("minute-master-transcript")?.remove();
   var button = document.createElement("div");
   button.innerText = "Record";
   button.role = "menuitem";
@@ -11,11 +12,26 @@ const add_record_button = () => {
   button.setAttribute("aria-disabled", "false");
   button.setAttribute("aria-expanded", "false");
   button.setAttribute("aria-haspopup", "false");
-  button.setAttribute("style", "user-select: none;");
+  button.setAttribute(
+    "style",
+    "user-select: none; background-color: rgb(212, 50, 35);color:white;"
+  );
   button.classList.add("menu-button", "goog-control", "goog-inline-block");
+
+  var transcriptElement = document.createElement("div");
+  transcriptElement.id = "minute-master-transcript";
+  transcriptElement.innerText = "";
+  transcriptElement.setAttribute(
+    "style",
+    "user-select: none; margin-left:8px;color:#888"
+  );
+  transcriptElement.setAttribute("role", "menuitem");
+  transcriptElement.classList.add("goog-inline-block");
+
   const existingNode = document.getElementById("docs-help-menu");
   if (!existingNode?.parentNode) return;
   existingNode.parentNode.insertBefore(button, existingNode.nextSibling);
+  button.parentNode.insertBefore(transcriptElement, button.nextSibling);
   button.onclick = () => {
     if (recording) {
       recording = false;
@@ -40,7 +56,7 @@ const SpeechRecognition =
 const mic = new SpeechRecognition();
 
 mic.continuous = true;
-mic.interimResults = false;
+mic.interimResults = true;
 mic.lang = "en-US";
 
 let interval = null;
@@ -122,10 +138,20 @@ const startRecording = () => {
   };
   mic.onresult = (event) => {
     const transcript = Array.from(event.results)
+      .filter((result) => result.isFinal)
       .map((result) => result[0])
       .map((result) => result.transcript)
       .join("");
+
+    const tempTranscript = Array.from(event.results)
+      .map((result) => result[0])
+      .map((result) => result.transcript)
+      .join("");
+    //get last 100 characters
+    const last100 = tempTranscript.slice(-75);
+    document.getElementById("minute-master-transcript").innerText = last100;
     //only run process transcript every 10 seconds at the minimum
+    if (transcript.length == 0) return;
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => {
       if (transcript.length > 100) processTranscript(transcript);
