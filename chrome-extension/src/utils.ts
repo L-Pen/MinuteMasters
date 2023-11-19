@@ -1,9 +1,9 @@
-export const getGoogleSheetId = async (): Promise<string> => {
+export const getGoogleDocId = async (): Promise<string> => {
   return new Promise((resolve, reject) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const url = tabs[0].url;
-      const sheetId = url?.split("/")[5];
-      resolve(sheetId ?? "");
+      const docID = url?.split("/")[5];
+      resolve(docID ?? "");
     });
   });
 };

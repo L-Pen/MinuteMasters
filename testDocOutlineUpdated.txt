@@ -1,0 +1,51 @@
+TA Meeting: November 16th
+Attendees
+Rayan Isran, Mathieu Geoffroy, David Breton, Theo Ghanem, Sehr Moosabhoy, Ryan Reszetnik, Sabrina Mansour
+Desired outcomes:
+Verify deliverable content with Rayan
+Update Ryan on our progress
+Flag any problems with our design
+Agenda
+Show updated plans and task list.
+Verify that the content of our data input testing document is correct.
+Verify that the content of our design document is correct.
+Give a short demo of our progress so far.
+Flag potential problems:
+Can ease of use be defined?
+How to address shortage of pieces.
+Notes
+Show updated plans and task list.
+Gantt chart is okay if we submit as a pdf
+Our time breakdown is good for now - won’t be exact
+Verify that the content of our data input testing document is correct.
+Looking good, expected and real are good indicators
+Most important thing is readability
+Verify that the content of our design document is correct.
+Looking good :)
+Don’t need to be more detailed in out description
+Subsystems at a high level is good
+Integration is quite important
+Aerial view of diagram and drawn are good as long as they are annotated
+Give a short demo of our progress so far.
+Stalled out motor :( 
+Could plot the actual positions sent to the motor and make sure info sent to motor is correct
+Bad cable :( very sad
+Could draw less power by setting dps limits
+Could set a fixed speed that is slow enough to not draw enough power but will still only take within 3 min
+Cable manage near the end 
+Flag potential problems:
+Can ease of use be defined?
+So can ease of use be defined? We define ease of use by the amount of time it takes to set up the puzzle, the amount of time it takes to solve the puzzle, and the amount of time it takes to reset the puzzle.
+Was answered by Katrina’s post
+How to address shortage of pieces.
+Also addressed by our optimization
+For design presentation
+Mention what we have tested
+What are the issues
+Coherent story
+Go linearly
+Can send him the presentation to review
+
+
+Action Items
+None.
