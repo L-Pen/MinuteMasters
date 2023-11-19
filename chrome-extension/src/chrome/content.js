@@ -1,10 +1,6 @@
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-// const recordAudio = async () => {
-//   console.log("clicked record");
-//   const audioContext = new AudioContext();
-//   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-//   const input = audioContext.createMediaStreamSource(stream);
-// };
+import { getGoogleDoc, updateGoogleDoc } from "../google.api";
+import { getAuthToken, getGoogleDocId } from "../utils";
+let recording = false;
 
 const add_record_button = () => {
   document.getElementById("minute-master-record")?.remove();
@@ -21,7 +17,15 @@ const add_record_button = () => {
   if (!existingNode?.parentNode) return;
   existingNode.parentNode.insertBefore(button, existingNode.nextSibling);
   button.onclick = () => {
-    connect();
+    if (recording) {
+      recording = false;
+      button.innerText = "Record";
+      stopRecording();
+    } else {
+      recording = true;
+      button.innerText = "Stop";
+      startRecording();
+    }
   };
 };
 const messagesFromReactAppListener = (message, sender, response) => {
@@ -30,131 +34,166 @@ const messagesFromReactAppListener = (message, sender, response) => {
   }
 };
 chrome.runtime.onMessage.addListener(messagesFromReactAppListener);
-const sampleRate = 16000;
-let connection;
-let currentRecognition;
-let recognitionHistory = [];
-let isRecording = false;
-let recorder;
-let processorRef = null;
-let audioContextRef = null;
-let audioInputRef = null;
 
-const speechRecognized = (data) => {
-  if (data.final) {
-    currentRecognition = "...";
-    recognitionHistory.unshift(data.text);
-  } else {
-    currentRecognition = data.text + "...";
-  }
-  updateUI();
-};
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+const mic = new SpeechRecognition();
 
-const connect = () => {
-  if (connection) {
-    connection.close();
-  }
-  connection = new WebSocket("ws://127.0.0.1:8081/");
-  connection.onopen = () => {
-    console.log("connected", connection);
-    startRecording();
-  };
+mic.continuous = true;
+mic.interimResults = false;
+mic.lang = "en-US";
 
-  connection.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    if (data.type === "audio_text") {
-      speechRecognized(data);
-      console.log("received audio text", data);
-    }
-  };
+let interval = null;
 
-  connection.onclose = () => {
-    console.log("disconnected");
-  };
-};
-
-const disconnect = () => {
-  if (!connection) return;
-  connection.close();
-  processorRef.disconnect();
-  audioInputRef.disconnect();
-  audioContextRef.close();
-  connection = undefined;
-  recorder = undefined;
-  isRecording = false;
-  updateUI();
-};
-
-const updateUI = () => {
-  const recognitionContainer = document.getElementById("recognition-container");
-  recognitionContainer.innerHTML = "";
-  recognitionHistory.forEach((tx, idx) => {
-    const p = document.createElement("p");
-    p.textContent = tx;
-    recognitionContainer.appendChild(p);
-  });
-  const p = document.createElement("p");
-  p.textContent = currentRecognition;
-  recognitionContainer.appendChild(p);
-};
-
-const getMediaStream = async () => {
-  return await navigator.mediaDevices.getUserMedia({
-    audio: {
-      deviceId: "default",
-      sampleRate: sampleRate,
-      sampleSize: 16,
-      channelCount: 1,
-    },
-    video: false,
-  });
-};
-
-const startRecording = async () => {
-  if (connection) {
-    const stream = await getMediaStream();
-    connection.send(JSON.stringify({ message: "startRecording" }));
-    // console.log("getting stream");
-    const audioContext = new AudioContext();
-    const audioSource = audioContext.createMediaStreamSource(stream);
-    const sampleRate = audioContext.sampleRate;
-    console.log(sampleRate);
-    // Create a script processor node to process audio
-    const scriptNode = audioContext.createScriptProcessor(4096, 1, 1);
-
-    scriptNode.onaudioprocess = (event) => {
-      // console.log("processing audio");
-      const inputData = event.inputBuffer.getChannelData(0);
-
-      //convert floats to ints
-      const jsonData = JSON.stringify({
-        message: "data",
-        audioData: Array.from(inputData),
-        sampleRate,
-      });
-      // console.log(sampleRate, formatted);
-      // Send audio data over WebSocket
-      if (connection.readyState === WebSocket.OPEN) {
-        // console.log("sending audio");
-        connection.send(jsonData);
+const getDoccumentData = async () => {
+  console.log("Getting document id");
+  console.log("getting auth token");
+  // const auth = await getAuthToken();
+  const token = await new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({ type: "get_auth_token" }, (response) => {
+      if (response) {
+        resolve(response.token);
+      } else {
+        console.log("no response");
+        reject();
       }
-    };
+    });
+  });
+  const documentID = window.location.href.split("/")[5];
 
-    audioSource.connect(scriptNode);
-    scriptNode.connect(audioContext.destination);
-  }
+  const res = await getGoogleDoc(documentID, token);
+  console.log(res);
+  const content = res.body.content
+    .flatMap((section) =>
+      section.paragraph
+        ? section.paragraph.elements.map((el) => el.textRun?.content)
+        : []
+    )
+    .join("");
+
+  return content;
+};
+
+const processTranscript = async (transcript) => {
+  const documentData = await getDoccumentData();
+  console.log({
+    transcript,
+    documentData,
+  });
+};
+
+const startRecording = () => {
+  console.log("Started recording");
+  recording = true;
+  mic.start();
+  mic.onstart = () => {
+    console.log("Mics on");
+  };
+  mic.onresult = (event) => {
+    const transcript = Array.from(event.results)
+      .map((result) => result[0])
+      .map((result) => result.transcript)
+      .join("");
+    processTranscript(transcript);
+  };
+  mic.onstop = () => {
+    if (recording) mic.start();
+  };
 };
 
 const stopRecording = () => {
-  if (isRecording) {
-    processorRef.disconnect();
-    audioInputRef.disconnect();
-    if (audioContextRef.state !== "closed") {
-      audioContextRef.close();
-    }
-    isRecording = false;
-    updateUI();
-  }
+  clearInterval(interval);
+  interval = null;
+  console.log("Stopped recording");
+  mic.stop();
 };
+
+// BELOW WAS USING THE GOOGLE CLOUD SPEECH API
+// const AudioContext = window.AudioContext || window.webkitAudioContext;
+// const sampleRate = 16000;
+// let connection;
+// let audioContext;
+
+// const connect = () => {
+//   if (connection) {
+//     connection.close();
+//   }
+//   connection = new WebSocket("ws://127.0.0.1:8081/");
+//   connection.onopen = () => {
+//     console.log("connected", connection);
+//     startRecording();
+//   };
+
+//   connection.onmessage = (event) => {
+//     const data = JSON.parse(event.data);
+//     if (data.type === "audio_text") {
+//       speechRecognized(data);
+//       console.log("received audio text", data);
+//     }
+//   };
+
+//   connection.onclose = () => {
+//     console.log("disconnected");
+//   };
+// };
+
+// const getMediaStream = async () => {
+//   return await navigator.mediaDevices.getUserMedia({
+//     audio: {
+//       deviceId: "default",
+//       sampleRate: sampleRate,
+//       sampleSize: 16,
+//       channelCount: 1,
+//     },
+//     video: false,
+//   });
+// };
+
+// const startRecording = async () => {
+//   if (connection) {
+//     const stream = await getMediaStream();
+//     connection.send(JSON.stringify({ message: "startRecording" }));
+//     audioContext = new AudioContext();
+//     const audioSource = audioContext.createMediaStreamSource(stream);
+//     const sampleRate = audioContext.sampleRate;
+//     console.log(sampleRate);
+//     // Create a script processor node to process audio
+//     const scriptNode = audioContext.createScriptProcessor(4096, 1, 1);
+
+//     scriptNode.onaudioprocess = (event) => {
+//       // console.log("processing audio");
+//       const inputData = event.inputBuffer.getChannelData(0);
+
+//       const arr = new Int16Array(inputData.length);
+//       for (let i = 0; i < inputData.length; i++) {
+//         arr[i] = Math.round(32767 * inputData[i]);
+//       }
+
+//       //convert floats to ints
+//       const jsonData = JSON.stringify({
+//         message: "data",
+//         audioData: Array.from(arr),
+//         sampleRate,
+//       });
+//       // console.log(sampleRate, formatted);
+//       // Send audio data over WebSocket
+//       if (connection.readyState === WebSocket.OPEN) {
+//         // console.log("sending audio");
+//         connection.send(jsonData);
+//       }
+//     };
+
+//     audioSource.connect(scriptNode);
+//     scriptNode.connect(audioContext.destination);
+//   }
+// };
+
+// const stopRecording = () => {
+//   if (connection) {
+//     connection.send(JSON.stringify({ message: "stopRecording" }));
+//     connection.close();
+//   }
+//   audioContext.close();
+// };
 
 export {};

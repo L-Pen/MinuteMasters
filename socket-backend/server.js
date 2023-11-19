@@ -30,10 +30,8 @@ socket.on("connection", (ws) => {
     } else {
       //   console.log(message.audioData);
       if (recognizeStream) {
-        const arr = new Int16Array(message.audioData.length);
-        for (let i = 0; i < message.audioData.length; i++) {
-          arr[i] = Math.round(32767 * message.audioData[i]);
-        }
+        // console.log(message);
+        const arr = new Int16Array(message.audioData);
         recognizeStream.write(arr);
       }
     }
@@ -56,7 +54,8 @@ socket.on("connection", (ws) => {
         .on("finish", () => console.log("finish"))
         .on("pipe", () => console.log("pipe"))
         .on("readable", () => console.log("readable"))
-        .on("resume", () => console.log("resume"));
+        .on("resume", () => console.log("resume"))
+        .on("unpipe", () => console.log("unpipe"));
     } catch (err) {
       console.error("Error streaming google api " + err);
     }

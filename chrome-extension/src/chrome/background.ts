@@ -6,6 +6,13 @@ export type BackgroundMessage = {
 chrome.runtime.onMessage.addListener(
   (request: BackgroundMessage, sender, sendResponse) => {
     console.log("got message from content script", request);
+    switch (request.type) {
+      case "get_auth_token":
+        chrome.identity.getAuthToken({ interactive: true }, (token) => {
+          sendResponse({ token });
+        });
+        return true;
+    }
   }
 );
 
