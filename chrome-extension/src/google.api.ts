@@ -35,7 +35,7 @@ export const updateGoogleDoc = async (
     }
   );
 
-  console.log("response", response);
+  console.log("response", response, response.body);
 
   if (!response.ok) {
     throw new Error(`Failed to update document: ${response.status}`);

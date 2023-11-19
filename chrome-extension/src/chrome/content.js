@@ -109,14 +109,7 @@ const processTranscript = async (transcript) => {
     })),
   };
   console.log(resp, updateObject);
-  chrome.runtime.sendMessage({
-    type: "update_google_doc",
-    data: {
-      documentId,
-      token,
-      content,
-    },
-  });
+  updateGoogleDoc(documentId, token, updateObject);
 };
 
 let timeout = null;
@@ -135,7 +128,7 @@ const startRecording = () => {
     //only run process transcript every 10 seconds at the minimum
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => {
-      processTranscript(transcript);
+      if (transcript.length > 100) processTranscript(transcript);
     }, 5000);
   };
   mic.onstop = () => {
@@ -149,93 +142,5 @@ const stopRecording = () => {
   console.log("Stopped recording");
   mic.stop();
 };
-
-// BELOW WAS USING THE GOOGLE CLOUD SPEECH API
-// const AudioContext = window.AudioContext || window.webkitAudioContext;
-// const sampleRate = 16000;
-// let connection;
-// let audioContext;
-
-// const connect = () => {
-//   if (connection) {
-//     connection.close();
-//   }
-//   connection = new WebSocket("ws://127.0.0.1:8081/");
-//   connection.onopen = () => {
-//     console.log("connected", connection);
-//     startRecording();
-//   };
-
-//   connection.onmessage = (event) => {
-//     const data = JSON.parse(event.data);
-//     if (data.type === "audio_text") {
-//       speechRecognized(data);
-//       console.log("received audio text", data);
-//     }
-//   };
-
-//   connection.onclose = () => {
-//     console.log("disconnected");
-//   };
-// };
-
-// const getMediaStream = async () => {
-//   return await navigator.mediaDevices.getUserMedia({
-//     audio: {
-//       deviceId: "default",
-//       sampleRate: sampleRate,
-//       sampleSize: 16,
-//       channelCount: 1,
-//     },
-//     video: false,
-//   });
-// };
-
-// const startRecording = async () => {
-//   if (connection) {
-//     const stream = await getMediaStream();
-//     connection.send(JSON.stringify({ message: "startRecording" }));
-//     audioContext = new AudioContext();
-//     const audioSource = audioContext.createMediaStreamSource(stream);
-//     const sampleRate = audioContext.sampleRate;
-//     console.log(sampleRate);
-//     // Create a script processor node to process audio
-//     const scriptNode = audioContext.createScriptProcessor(4096, 1, 1);
-
-//     scriptNode.onaudioprocess = (event) => {
-//       // console.log("processing audio");
-//       const inputData = event.inputBuffer.getChannelData(0);
-
-//       const arr = new Int16Array(inputData.length);
-//       for (let i = 0; i < inputData.length; i++) {
-//         arr[i] = Math.round(32767 * inputData[i]);
-//       }
-
-//       //convert floats to ints
-//       const jsonData = JSON.stringify({
-//         message: "data",
-//         audioData: Array.from(arr),
-//         sampleRate,
-//       });
-//       // console.log(sampleRate, formatted);
-//       // Send audio data over WebSocket
-//       if (connection.readyState === WebSocket.OPEN) {
-//         // console.log("sending audio");
-//         connection.send(jsonData);
-//       }
-//     };
-
-//     audioSource.connect(scriptNode);
-//     scriptNode.connect(audioContext.destination);
-//   }
-// };
-
-// const stopRecording = () => {
-//   if (connection) {
-//     connection.send(JSON.stringify({ message: "stopRecording" }));
-//     connection.close();
-//   }
-//   audioContext.close();
-// };
 
 export {};
