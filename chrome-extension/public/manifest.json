@@ -1,6 +1,6 @@
 {
-  "name": "CodeJam",
-  "description": "CodeJam Hackathon",
+  "name": "Minute Masters",
+  "description": "Automatically generate meeting minutes for any meeting",
   "version": "1.1",
   "manifest_version": 3,
 
@@ -20,7 +20,7 @@
       "matches": [
         "*://*.google.com/*"
       ],
-      "js": ["./static/js/content.js","./src/worklets/recorderWorkletProcessor.js"],
+      "js": ["./static/js/content.js"],
       "all_frames": false,
       "run_at": "document_end"
     }

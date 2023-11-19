@@ -1,6 +1,7 @@
 import { getGoogleDoc, updateGoogleDoc } from "../google.api";
 import { getAuthToken, getGoogleDocId } from "../utils";
 let recording = false;
+let loading = false;
 
 const add_record_button = () => {
   document.getElementById("minute-master-record")?.remove();
@@ -132,7 +133,11 @@ const processTranscript = async (transcript) => {
     })),
   };
   console.log(resp, updateObject);
-  updateGoogleDoc(documentId, token, updateObject);
+  updateGoogleDoc(documentId, token, updateObject).then(() => {
+    if (!recording) {
+      loading = false;
+    }
+  });
   chrome.storage.local.get(["addedNotes"], (result) => {
     const addedNotes = result.addedNotes || {};
     const newNotes = resp.map((upd) => upd[2]);
@@ -145,9 +150,13 @@ const processTranscript = async (transcript) => {
     });
   });
 };
-
+let clearTranscriptTimeout = null;
 let timeout = null;
 const startRecording = () => {
+  if (clearTranscriptTimeout) {
+    clearTimeout(clearTranscriptTimeout);
+    clearTranscriptTimeout = null;
+  }
   console.log("Started recording");
   recording = true;
   mic.start();
@@ -168,6 +177,7 @@ const startRecording = () => {
     //get last 100 characters
     const last100 = tempTranscript.slice(-75);
     document.getElementById("minute-master-transcript").innerText = last100;
+    if (transcript.length > 50) loading = true;
     //only run process transcript every 10 seconds at the minimum
     if (transcript.length == 0) return;
     if (timeout) clearTimeout(timeout);
@@ -182,6 +192,10 @@ const startRecording = () => {
 
 const stopRecording = () => {
   clearInterval(interval);
+  clearTranscriptTimeout = setTimeout(() => {
+    document.getElementById("minute-master-transcript").innerText = "";
+    clearTranscriptTimeout = null;
+  }, 3000);
   interval = null;
   console.log("Stopped recording");
   mic.stop();
