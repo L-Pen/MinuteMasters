@@ -36,12 +36,21 @@ export const App = () => {
     var updateObject = {
       requests: [{
         'insertText': {
-          'text': "Sameer Bayani",
+          'text': "Sameer Bayani\n",
           location: {
             index: 1,
           },
+        }},
+        {
+        'replaceAllText': {
+          "replaceText": '\nWas answered by Katrina’s post. We define ease of use by the amount of time it takes to set up the puzzle, the amount of time it takes to solve the puzzle, and the amount of time it takes to reset the puzzle.\n',
+
+          "containsText": {
+            "text": 'Was answered by Katrina’s post',
+            "matchCase": true
+          },
         },
-      }],
+    }],
     };
 
     const res = await updateGoogleDoc(documentID, auth, updateObject);
