@@ -179,11 +179,13 @@ const startRecording = () => {
     document.getElementById("minute-master-transcript").innerText = last100;
     if (transcript.length > 50) loading = true;
     //only run process transcript every 10 seconds at the minimum
-    if (transcript.length == 0) return;
-    if (timeout) clearTimeout(timeout);
+    // console.log("Timeout exists", !!timeout, transcript.length);
+    if (transcript.length == 0 || timeout) return;
+    console.log("Starting 10s timeout");
     timeout = setTimeout(() => {
+      timeout = null;
       if (transcript.length > 50) processTranscript(transcript);
-    }, 5000);
+    }, 10000);
   };
   mic.onstop = () => {
     if (recording) mic.start();
