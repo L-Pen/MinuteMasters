@@ -13,7 +13,7 @@ def adjustContent(content, dialogue):
     model = "gpt-4",
     messages = [
     {"role": "system", "content": f"""
-    You will be provided with meeting notes and a piece of dialogue that was said during the meeting. Your role is to find the best place for it add it without changing the rest of the notes. These notes should be a summary of what is said into bullet points as if the person who said it wrote them themselves and not the verbatum words.
+    You will be provided with meeting notes and a piece of dialogue that was said during the meeting. Your role is to find the best place for it add it without changing the rest of the notes. These notes should be a summary of what is said into bullet points as if the person who said it wrote them themselves and not the verbatum words. If it is fully off topic, don't make any changes to the document. Awlays add notes to a new paragraph compared to what is already there and keep them short.
     """},
     {"role": "user", "content": content + "\n=====================\nHere is the dialogue that was said:\n" + dialogue},
 
@@ -38,10 +38,26 @@ def show_changes(old_text, new_text):
   character_count = 0
 
   for line in diff:
+    prev_line = diff[line_count-1]
+    line_position = line_count-1
+    while len(prev_line[2:].strip()) == 0:
+      if line_position < 0:
+         break
+      prev_line = diff[line_position]
+      line_position -= 1
     character_count += len(line)
     if line.startswith('+ '):  # Added line
         print(line_count, f"\033[92m{line}\033[0m")  # Print in green
-        line_position_array.append((line_count, character_count, line))
+        #remove the + and space
+        if prev_line.startswith('+ '):
+          prev = line_position_array.pop()
+          line_position_array.append((line_count, character_count, line[2:], prev[3]))
+        elif prev_line.startswith('-'):
+          if prev_line[2:] in line[2:]:
+            #only add the new part
+            line_position_array.append((line_count, character_count, line[2+len(prev_line[2:]):],prev_line[2:]))
+        else:
+          line_position_array.append((line_count, character_count, line[2:], prev_line))
     elif line.startswith('- '):  # Removed line
         print(line_count, f"\033[91m{line}\033[0m")  # Print in red
     elif line.startswith('? '):  # Info about lines (common in unified diffs)
@@ -49,7 +65,8 @@ def show_changes(old_text, new_text):
     else:
         print(line_count, line)
     line_count += 1
-  
+
+
   return line_position_array
 
 

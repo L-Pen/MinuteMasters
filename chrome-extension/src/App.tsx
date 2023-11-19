@@ -2,11 +2,26 @@ import React, { useEffect } from "react";
 import "./App.css";
 import { getAuthToken, getGoogleDocId } from "./utils";
 import { getGoogleDoc, updateGoogleDoc } from "./google.api";
+import DocNote from "./components/DocNote";
 
 export const App = () => {
-  const [currentUrl, setCurrentUrl] = React.useState("");
-  let [documentContent, setDocumentContent] = React.useState<any | null>(null);
-  let [test, setTest] = React.useState<any | null>(null);
+  const [title, setTitle] = React.useState<string>(
+    "Please open a google doc to start taking notes"
+  );
+
+  const [notes, setNotes] = React.useState<string[]>([]);
+
+  useEffect(() => {
+    getGoogleDocId().then((id) => {
+      chrome.storage.local.get(["addedNotes"], function (result) {
+        if (result.addedNotes && result.addedNotes[id]) {
+          setNotes(result.addedNotes[id]);
+        } else {
+          setNotes([]);
+        }
+      });
+    });
+  });
 
   const getDoccumentData = async () => {
     const documentID = await getGoogleDocId();
@@ -22,63 +37,56 @@ export const App = () => {
           : []
       )
       .join("");
-
-    setDocumentContent(content);
-    console.log(`The title of the document is: ${res.data.title}`);
+    setTitle(res.title);
   };
 
-  const updateDocData = async () => {
-    const documentID = await getGoogleDocId();
+  useEffect(() => {
+    getDoccumentData();
+  }, []);
 
+  const deleteNote = async (note: string) => {
+    //remove from current google doc
     const auth = await getAuthToken();
-
+    const documentID = await getGoogleDocId();
     var updateObject = {
       requests: [
         {
-          insertText: {
-            text: "Sameer Bayani\n",
-            location: {
-              index: 1,
-            },
-          },
-        },
-        {
           replaceAllText: {
-            replaceText:
-              "\nWas answered by Katrina’s post. We define ease of use by the amount of time it takes to set up the puzzle, the amount of time it takes to solve the puzzle, and the amount of time it takes to reset the puzzle.\n",
-
+            replaceText: "",
             containsText: {
-              text: "Was answered by Katrina’s post",
+              text: note,
               matchCase: true,
             },
           },
         },
       ],
     };
-
-    const res = await updateGoogleDoc(documentID, auth, updateObject);
-    setTest(res);
-    console.log(`Updated the document: ${res.data.title}`);
+    updateGoogleDoc(documentID, auth, updateObject).then((res) => {
+      chrome.storage.local.get(["addedNotes"], function (result) {
+        if (result.addedNotes && result.addedNotes[documentID]) {
+          const newNotes = result.addedNotes[documentID].filter(
+            (n: string) => n !== note
+          );
+          chrome.storage.local.set({
+            addedNotes: {
+              ...result.addedNotes,
+              [documentID]: newNotes,
+            },
+          });
+          setNotes(newNotes);
+        }
+      });
+    });
   };
 
-  useEffect(() => {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      const url = tabs[0].url ?? "";
-      setCurrentUrl(url);
-    });
-
-    getDoccumentData();
-    updateDocData();
-  }, []);
-
   return (
-    <div>
-      <h1>Google Docs Extension</h1>
-      <pre>
-        <code>{JSON.stringify(documentContent, null, 2)}</code>
-        <h1>!!!!!!!!!!!!!!!!!BODY!!!!!!!!!!!!!!!!!</h1>
-        <code>{JSON.stringify(test, null, 2)}</code>
-      </pre>
+    <div style={{ minWidth: "300px" }}>
+      <h1 style={{ textAlign: "center" }}>Minute Masters</h1>
+      <h3 style={{ fontSize: "0.8rem", textAlign: "center" }}>{title}</h3>
+
+      {notes.map((note) => (
+        <DocNote content={note} onDelete={() => deleteNote(note)} />
+      ))}
     </div>
   );
 };

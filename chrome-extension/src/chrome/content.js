@@ -116,16 +116,34 @@ const processTranscript = async (transcript) => {
   });
   var updateObject = {
     requests: resp.map((upd) => ({
-      insertText: {
-        text: upd[2],
-        location: {
-          index: upd[1],
+      // insertText: {
+      //   text: upd[2],
+      //   location: {
+      //     index: upd[1],
+      //   },
+      // },
+      replaceAllText: {
+        replaceText: upd[3].trim() + "\n" + upd[2],
+        containsText: {
+          text: upd[3].trim(),
+          matchCase: true,
         },
       },
     })),
   };
   console.log(resp, updateObject);
   updateGoogleDoc(documentId, token, updateObject);
+  chrome.storage.local.get(["addedNotes"], (result) => {
+    const addedNotes = result.addedNotes || {};
+    const newNotes = resp.map((upd) => upd[2]);
+    const oldNotes = addedNotes[documentId] || [];
+    chrome.storage.local.set({
+      addedNotes: {
+        ...addedNotes,
+        [documentId]: [...oldNotes, ...newNotes],
+      },
+    });
+  });
 };
 
 let timeout = null;
@@ -154,7 +172,7 @@ const startRecording = () => {
     if (transcript.length == 0) return;
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => {
-      if (transcript.length > 100) processTranscript(transcript);
+      if (transcript.length > 50) processTranscript(transcript);
     }, 5000);
   };
   mic.onstop = () => {
