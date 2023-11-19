@@ -51,7 +51,7 @@ def show_changes(old_text, new_text):
         #remove the + and space
         if prev_line.startswith('+ '):
           prev = line_position_array.pop()
-          line_position_array.append((line_count, character_count, line[2:], prev[3]))
+          line_position_array.append((line_count, character_count, prev[2]+"\n"+line[2:], prev[3]))
         elif prev_line.startswith('-'):
           if prev_line[2:] in line[2:]:
             #only add the new part
